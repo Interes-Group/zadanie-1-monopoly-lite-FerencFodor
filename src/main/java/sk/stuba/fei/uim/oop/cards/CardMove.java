@@ -1,7 +1,10 @@
 package sk.stuba.fei.uim.oop.cards;
 
 import sk.stuba.fei.uim.oop.GameSystem;
+import sk.stuba.fei.uim.oop.Player;
 import sk.stuba.fei.uim.oop.fields.corners.JailField;
+
+import java.util.List;
 
 public class CardMove extends Card {
 
@@ -13,9 +16,8 @@ public class CardMove extends Card {
     }
 
     @Override
-    public void onPull() {
-        super.onPull();
-
+    public void onPull(List<Player> playerList) {
+        System.out.println(cardText);
         if (doTravel)
             travel();
         else
@@ -37,7 +39,7 @@ public class CardMove extends Card {
         system.currentPlayer.setFieldPos(value);
         if (system.currentPlayer.getFieldPos() == 6)
             system.currentPlayer.setInJail(JailField.JAIL_TIME);
-        else if (previousPos < system.currentPlayer.getFieldPos()) {
+        else if (previousPos > system.currentPlayer.getFieldPos()) {
             system.fields.get(0).onEnter();
         }
 

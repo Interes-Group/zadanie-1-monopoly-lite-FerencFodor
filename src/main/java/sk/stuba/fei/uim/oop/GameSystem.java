@@ -13,6 +13,7 @@ import sk.stuba.fei.uim.oop.fields.corners.StartField;
 import sk.stuba.fei.uim.oop.fields.corners.TaxField;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -84,12 +85,13 @@ public class GameSystem {
      * Populates Card List
      */
     private void populateCards() {
-        cards.add(new CardMove(this, cardNameList[0], 0, false));
+
         cards.add(new CardPay(this, cardNameList[1], 50, false));
         cards.add(new CardMove(this, cardNameList[2], 15, false));
         cards.add(new CardMove(this, cardNameList[3], 7, false));
         cards.add(new CardPay(this, cardNameList[4], 50, false));
         cards.add(new CardPay(this, cardNameList[5], 150, false));
+        cards.add(new CardMove(this, cardNameList[0], 0, false));
         cards.add(new CardMove(this, cardNameList[6], -3, true));
         cards.add(new CardMove(this, cardNameList[7], 6, false));
         cards.add(new CardPay(this, cardNameList[8], -15, false));
@@ -176,7 +178,7 @@ public class GameSystem {
         );
 
 
-        do {
+        while (addedPlayers < MAX_PLAYER) {
             var input = scanner.next();
             String arg = "";
             if (!input.equalsIgnoreCase("start"))
@@ -211,7 +213,9 @@ public class GameSystem {
                     printHelp();
                     break;
             }
-        } while (addedPlayers < MAX_PLAYER || !start);
+
+            if (start) break;
+        }
 
         System.out.println("\nStarting game...");
 
@@ -227,11 +231,11 @@ public class GameSystem {
     private void update() throws InterruptedException {
         Iterator<Player> it = players.iterator();
 
+        System.out.println("In Game Commands: help, status, roll");
         do {
             TimeUnit.SECONDS.sleep(1);
 
-            System.out.println("\n\n" +
-                    "----------");
+            System.out.println("----------");
 
             //Cycle through players using iterator
             if (!it.hasNext())
@@ -247,8 +251,9 @@ public class GameSystem {
 
             System.out.println(currentPlayer.getName() + "'s Turn:\n");
 
-            if (scanner.hasNext()) {
-                var input = scanner.next();
+            String input;
+           do {
+                input = scanner.next();
                 switch (input) {
                     case "help":
                         currentPlayer.help();
@@ -257,7 +262,8 @@ public class GameSystem {
                         currentPlayer.status();
                         break;
                 }
-            }
+            } while(!input.equals("roll"));
+
 
             System.out.println("Rolling...");
             TimeUnit.SECONDS.sleep(1);
@@ -275,12 +281,12 @@ public class GameSystem {
                 fields.get(pos).onEnter();
             }
 
+            showPosition();
+
             System.out.print(currentPlayer.getName() + " landed on ");
             checkLandedField(fields.get(currentPlayer.getFieldPos()));
 
             fields.get(currentPlayer.getFieldPos()).onStay();
-
-            pressEnterToContinue();
 
             //remove player and ownership of bought housing fields if their money is below or equal to 0
             players.forEach(player -> {
@@ -298,5 +304,29 @@ public class GameSystem {
 
         System.out.print("WINNER: " + players.get(0).getName());
         scanner.close();
+    }
+
+    private void showPosition() {
+        PrintStream stream = System.out;
+        char[] playerPos = new char[48];
+
+        fields.forEach(field -> {
+            if(field instanceof StartField)
+                stream.print("|G");
+            else if(field instanceof HousingField)
+                stream.print(" ^" + ((HousingField) field).getName().charAt(0));
+            else if(field instanceof ChanceField)
+                stream.print(" |C");
+            else if(field instanceof JailField)
+                stream.print(" |J");
+            else if (field instanceof TaxField)
+                stream.print(" |T");
+            else if(field instanceof PoliceField)
+                stream.print(" |P");
+        });
+        stream.print("\n");
+
+        players.forEach(player -> playerPos[1 + player.getFieldPos() * 3] = player.getName().charAt(0));
+        stream.println(playerPos);
     }
 }

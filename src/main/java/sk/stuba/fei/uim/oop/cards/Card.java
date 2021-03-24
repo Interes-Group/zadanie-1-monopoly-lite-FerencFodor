@@ -19,19 +19,7 @@ public abstract class Card {
 
     /**
      * Retrieve a card while standing on a Chance Field
+     * @param playerList List of players affected
      */
-    public void onPull() {
-        System.out.println(cardText);
-
-    }
-
-    /**
-     * Retrieve a card while standing on a Chance Field
-     *
-     * @param playerList List of players the card effects
-     */
-    public void onPull(List<Player> playerList) {
-        System.out.println(cardText);
-
-    }
+    public abstract void onPull(List<Player> playerList);
 }

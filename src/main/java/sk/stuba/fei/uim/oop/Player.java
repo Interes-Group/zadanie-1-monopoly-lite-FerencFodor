@@ -90,6 +90,7 @@ public class Player {
                         "Owned Property:");
 
         ownedHousingFields.forEach(x -> System.out.println(x.getName()));
+        System.out.println("\n");
     }
 
     /**

@@ -66,11 +66,15 @@ public class HousingField extends Field {
         var money = system.currentPlayer.getMoney();
 
         if (owner != null) {
+            if (owner == system.currentPlayer) {
+                System.out.println(system.currentPlayer.getName() + " landed on their own property.");
+                return;
+            }
+
             System.out.println(system.currentPlayer.getName() + " pays " + owner.getName() + " $" + rent);
 
             system.currentPlayer.setMoney(money - rent);
             owner.setMoney(owner.getMoney() + rent);
-
         } else {
             var scanner = new Scanner(System.in);
 

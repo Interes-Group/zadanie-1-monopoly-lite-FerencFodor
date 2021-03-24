@@ -6,7 +6,6 @@ import sk.stuba.fei.uim.oop.Player;
 import java.util.List;
 
 public class CardPay extends Card {
-    private List<Player> playersToPay;
     private boolean doTransaction;
 
     public CardPay(GameSystem system, String cardText, int value, boolean doTransaction) {
@@ -15,11 +14,11 @@ public class CardPay extends Card {
     }
 
     @Override
-    public void onPull() {
-        super.onPull();
+    public void onPull(List<Player> playerList) {
+        System.out.println(cardText);
 
         if (doTransaction)
-            transaction(playersToPay);
+            transaction(playerList);
         else
             payment();
     }
