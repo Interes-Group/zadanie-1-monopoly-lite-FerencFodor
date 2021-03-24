@@ -17,19 +17,23 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class GameSystem {
     public final static int MAX_PLAYER = 4;
     public final static int STARTING_CAPITAL = 1500;
+
     public Player currentPlayer;
-    public int rolledValue;
+    public int rollResult;
     public LinkedList<Field> fields;
     public Scanner scanner;
+
     private String[] cardNameList;
     private ArrayList<Card> cards;
     private ArrayList<Player> players;
     private int nextCard = 0;
 
+    //Constructor
     public GameSystem() {
         cardNameList = new IOManager().fileToStringArray("CardText");
 
@@ -41,6 +45,11 @@ public class GameSystem {
 
     }
 
+    //Methods
+
+    /**
+     * Populates Field List
+     */
     private void populateFields() {
         fields.addFirst(new StartField(this));
         fields.add(new HousingField(this, "Mediterranean Avenue", 60, 10));
@@ -71,6 +80,9 @@ public class GameSystem {
         fields.addLast(new HousingField(this, "Boardwalk", 400, 110));
     }
 
+    /**
+     * Populates Card List
+     */
     private void populateCards() {
         cards.add(new CardMove(this, cardNameList[0], 0, false));
         cards.add(new CardPay(this, cardNameList[1], 50, false));
@@ -85,11 +97,18 @@ public class GameSystem {
         cards.add(new CardPay(this, cardNameList[10], 50, true));
     }
 
-
+    /**
+     * Generates a random value between 1 and 6
+     *
+     * @return generated integer value
+     */
     public int roll() {
         return (int) Math.round((Math.random() % 6) + 1);
     }
 
+    /**
+     * Gets the next card from the card list
+     */
     public void getCard() {
         nextCard = nextCard >= cards.size() ? 0 : nextCard;
 
@@ -98,17 +117,66 @@ public class GameSystem {
         nextCard++;
     }
 
-    public void startGame() throws MissingArgumentException {
+    /**
+     * Waits for the enter key to be pressed
+     */
+    private void pressEnterToContinue() {
+        System.out.println("Press Enter key to continue...");
+        try {
+            var ignore = System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Prints the field the player landed on
+     */
+    private void checkLandedField(Field field) {
+        if (field instanceof ChanceField)
+            System.out.println("a Chance Field!");
+        else if (field instanceof HousingField)
+            System.out.println(((HousingField) field).getName() + "!");
+        else if (field instanceof StartField)
+            System.out.println("GO Field!");
+        else if (field instanceof JailField)
+            System.out.println("Jail Field!");
+        else if (field instanceof TaxField)
+            System.out.println("Tax Field!");
+        else if (field instanceof PoliceField)
+            System.out.println("Police Field!");
+    }
+
+    /**
+     * Prints help for start commands
+     */
+    private void printHelp() {
+        System.out.print("help - Usage: help\n\tprint help info.\n" +
+                "add - Usage: add [playerName]\n\tAdds a player to game\n" +
+                "remove - Usage: remove [playerName]\n\tRemoves player from game\n" +
+                "start - Usage: start\n\tStarts the game");
+    }
+
+
+    //Game loop methods
+
+    /**
+     * Entry point for the game loop
+     */
+    public void startGame() throws MissingArgumentException, InterruptedException {
         var addedPlayers = 0;
+        var start = false;
 
-        System.out.print("Monopoly Lite\n" +
-                "Author: Ferenc Fodor\n\n" +
-                "Max players: " + MAX_PLAYER +
-                "(type \"help\" for commands)\n")
-        ;
+        System.out.print(
+                "Monopoly Lite\n" +
+                        "Author: Ferenc Fodor\n\n" +
 
-        while (addedPlayers < MAX_PLAYER) {
-            var start = false;
+                        "Max players: " + MAX_PLAYER + "\n" +
+                        "(type \"help\" for commands)\n"
+        );
+
+
+        do {
             var input = scanner.next();
             String arg = "";
             if (!input.equalsIgnoreCase("start"))
@@ -137,71 +205,98 @@ public class GameSystem {
 
                 case "start":
                     start = true;
-                    System.out.println("Starting game...");
                     break;
 
                 case "help":
                     printHelp();
                     break;
             }
+        } while (addedPlayers < MAX_PLAYER || !start);
 
-            if (start) break;
-        }
+        System.out.println("\nStarting game...");
 
         populateFields();
         populateCards();
 
-
         update();
-
     }
 
-    private void update() {
+    /**
+     * Main Game Loop
+     */
+    private void update() throws InterruptedException {
         Iterator<Player> it = players.iterator();
 
+        do {
+            TimeUnit.SECONDS.sleep(1);
 
-        while (players.size() != 1) {
-            players.removeIf(x -> x.getMoney() <= 0);
+            System.out.println("\n\n" +
+                    "----------");
+
+            //Cycle through players using iterator
             if (!it.hasNext())
                 it = players.iterator();
             currentPlayer = it.next();
 
-
+            //Check if player is in jail
+            //Used continue because player can't loose money while in jail
             if (currentPlayer.getInJail() > 0) {
                 fields.get(currentPlayer.getFieldPos()).onStay();
                 continue;
             }
-            System.out.println(currentPlayer.getName() + "'s Turn:\n Press Enter to roll");
 
-            try {
-                var read = System.in.read();
-            } catch (IOException e) {
-                e.printStackTrace();
+            System.out.println(currentPlayer.getName() + "'s Turn:\n");
+
+            if (scanner.hasNext()) {
+                var input = scanner.next();
+                switch (input) {
+                    case "help":
+                        currentPlayer.help();
+                        break;
+                    case "status":
+                        currentPlayer.status();
+                        break;
+                }
             }
 
-            rolledValue = roll();
-            System.out.println(currentPlayer.getName() + " rolled " + rolledValue + ".");
+            System.out.println("Rolling...");
+            TimeUnit.SECONDS.sleep(1);
 
-            for (var i = 0; i < rolledValue; i++) {
+            rollResult = roll();
+            System.out.println(currentPlayer.getName() + " rolled " + rollResult + ".");
+
+            for (var i = 0; i < rollResult; i++) {
                 var pos = currentPlayer.getFieldPos() + 1;
 
                 if (pos > 23)
                     pos = 0;
 
-                fields.get(pos).onEnter();
                 currentPlayer.setFieldPos(pos);
+                fields.get(pos).onEnter();
             }
+
+            System.out.print(currentPlayer.getName() + " landed on ");
+            checkLandedField(fields.get(currentPlayer.getFieldPos()));
+
             fields.get(currentPlayer.getFieldPos()).onStay();
 
-        }
+            pressEnterToContinue();
+
+            //remove player and ownership of bought housing fields if their money is below or equal to 0
+            players.forEach(player -> {
+                if (player.getMoney() <= 0) {
+                    players.remove(player);
+                    fields.forEach(field -> {
+                        if (field instanceof HousingField &&
+                                ((HousingField) field).getOwner().equals(player))
+                            ((HousingField) field).setOwner(null);
+                    });
+                }
+            });
+        } while (players.size() != 1);
+
+
         System.out.print("WINNER: " + players.get(0).getName());
         scanner.close();
-    }
-
-    private void printHelp() {
-        System.out.print("help - Usage: help\n\tprint help info.\n" +
-                "add - Usage: add [playerName]\n\tAdds a player to game\n" +
-                "remove - Usage: remove [playerName]\n\tRemoves player from game\n" +
-                "start - Usage: start\n\tStarts the game");
     }
 }

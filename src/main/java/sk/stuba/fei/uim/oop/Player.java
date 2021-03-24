@@ -74,21 +74,32 @@ public class Player {
         this.ownedHousingFields = ownedHousingFields;
     }
 
-    public void addHousingField(HousingField housingField){
+    public void addHousingField(HousingField housingField) {
         this.ownedHousingFields.add(housingField);
     }
 
     //</editor-fold>
 
-    public void status(){
+    /**
+     * Prints the relevant data of a player
+     */
+    public void status() {
         System.out.println(
-                "[" + name +"]\n" +
-                "Money: $" + money +"\n" +
-                "Owned Property:");
+                "[" + name + "]\n" +
+                        "Money: $" + money + "\n" +
+                        "Owned Property:");
 
         ownedHousingFields.forEach(x -> System.out.println(x.getName()));
     }
 
-    public void help() {}
+    /**
+     * Prints help for in game commands
+     */
+    public void help() {
+        System.out.println(
+                "help - Usage: help\n\tprint in-game help info.\n" +
+                        "status - Usage: status\n\tshows status of the current player\n"
+        );
+    }
 
 }

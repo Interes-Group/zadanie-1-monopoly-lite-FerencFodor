@@ -10,8 +10,14 @@ public abstract class Field {
         this.system = system;
     }
 
+    /**
+     * Action on entering a field
+     */
     public abstract void onEnter();
 
+    /**
+     * Action while staying on a field
+     */
     public abstract void onStay();
 
 }

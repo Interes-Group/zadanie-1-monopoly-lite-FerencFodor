@@ -7,7 +7,7 @@ public class Assignment1 {
         GameSystem game = new GameSystem();
         try {
             game.startGame();
-        } catch (MissingArgumentException e) {
+        } catch (MissingArgumentException | InterruptedException e) {
             e.printStackTrace();
         }
 

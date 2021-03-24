@@ -11,10 +11,22 @@ public class IOManager {
 
     private static final int MAX_ARRAY = 1024;
 
+    /**
+     * Retrieves file path to a file in resources from file name
+     *
+     * @param fileName Name of the file
+     * @return Path to file in resources
+     */
     private String getFilePath(String fileName) {
         return new File("src/main/java/resources/" + fileName).getAbsolutePath();
     }
 
+    /**
+     * Reads file content and puts it into a String Array (String[])
+     *
+     * @param fileName Name of the file
+     * @return String array of retrieved data
+     */
     String[] fileToStringArray(String fileName) {
         String filePath = getFilePath(fileName);
         List<String> output = new ArrayList<>();
