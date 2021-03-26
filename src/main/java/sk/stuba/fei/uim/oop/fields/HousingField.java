@@ -74,7 +74,8 @@ public class HousingField extends Field {
             System.out.println(system.currentPlayer.getName() + " pays " + owner.getName() + " $" + rent);
 
             system.currentPlayer.setMoney(money - rent);
-            owner.setMoney(owner.getMoney() + rent);
+            var compensation = Math.min(system.currentPlayer.getMoney(), 0);
+            owner.setMoney(owner.getMoney() + rent + compensation);
         } else {
             var scanner = new Scanner(System.in);
 

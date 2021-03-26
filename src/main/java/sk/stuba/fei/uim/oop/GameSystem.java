@@ -212,19 +212,22 @@ public class GameSystem {
      * Main Game Loop
      */
     private void update() throws InterruptedException {
-        Iterator<Player> it = players.iterator();
-
-        System.out.println("In Game Commands: help, status, roll");
 
         while (players.size() > 1) {
             TimeUnit.SECONDS.sleep(2);
-            //Cycle through players using iterator
-            if (!it.hasNext()) {
-                it = players.iterator();
 
+            if(currentPlayer == null){
+                currentPlayer = players.get(0);
+            } else {
+                if(players.get(players.indexOf(currentPlayer)) != currentPlayer){
+                    currentPlayer = players.get(players.indexOf(currentPlayer));
+                } else {
+                    currentPlayer = players.get(players.indexOf(currentPlayer)+1 >=players.size() ? 0 :
+                            players.indexOf(currentPlayer)+1);
+                }
             }
+
             printStatus();
-            currentPlayer = it.next();
 
             //Check if player is in jail
             //Used continue because player can't loose money while in jail
@@ -234,10 +237,6 @@ public class GameSystem {
             }
 
             System.out.println(currentPlayer.getName() + "'s Turn:");
-
-
-            System.out.println("Rolling...");
-            TimeUnit.SECONDS.sleep(1);
 
             rollResult = roll();
             System.out.println(currentPlayer.getName() + " rolled " + rollResult + ".");
@@ -272,7 +271,7 @@ public class GameSystem {
                 }
             });
 
-            players.removeIf(x -> x.getMoney() <= 0);
+            players.removeIf(player -> player.getMoney()<=0);
         }
 
         System.out.println();
