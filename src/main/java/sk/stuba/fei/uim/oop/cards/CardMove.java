@@ -30,6 +30,8 @@ public class CardMove extends Card {
 
         if (position >= 24)
             position -= 24;
+        else if (position < 0)
+            position += 24;
 
         system.currentPlayer.setFieldPos(position);
     }

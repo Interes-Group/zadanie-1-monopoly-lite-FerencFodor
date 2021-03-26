@@ -19,6 +19,7 @@ public abstract class Card {
 
     /**
      * Retrieve a card while standing on a Chance Field
+     *
      * @param playerList List of players affected
      */
     public abstract void onPull(List<Player> playerList);

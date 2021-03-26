@@ -20,8 +20,8 @@ public class TaxField extends Field {
         var player = system.currentPlayer;
         var money = player.getMoney();
 
-        System.out.println(player.getName() + " pays $200 in tax.");
+        System.out.println(player.getName() + " pays $400 in tax.");
 
-        player.setMoney(money + 200);
+        player.setMoney(money - 400);
     }
 }

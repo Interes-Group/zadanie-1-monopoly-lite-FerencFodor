@@ -12,38 +12,33 @@ import sk.stuba.fei.uim.oop.fields.corners.PoliceField;
 import sk.stuba.fei.uim.oop.fields.corners.StartField;
 import sk.stuba.fei.uim.oop.fields.corners.TaxField;
 
-import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class GameSystem {
     public final static int MAX_PLAYER = 4;
-    public final static int STARTING_CAPITAL = 1500;
+    public final static int STARTING_CAPITAL = 1000;
 
     public Player currentPlayer;
     public int rollResult;
-    public LinkedList<Field> fields;
+    public List<Field> fields;
     public Scanner scanner;
 
     private String[] cardNameList;
     private ArrayList<Card> cards;
     private ArrayList<Player> players;
     private int nextCard = 0;
+    private Random random;
 
     //Constructor
     public GameSystem() {
         cardNameList = new IOManager().fileToStringArray("CardText");
-
         fields = new LinkedList<>();
         cards = new ArrayList<>();
         players = new ArrayList<>();
-
         scanner = new Scanner(System.in);
-
+        random = new Random();
     }
 
     //Methods
@@ -52,7 +47,7 @@ public class GameSystem {
      * Populates Field List
      */
     private void populateFields() {
-        fields.addFirst(new StartField(this));
+        fields.add(new StartField(this));
         fields.add(new HousingField(this, "Mediterranean Avenue", 60, 10));
         fields.add(new ChanceField(this));
         fields.add(new HousingField(this, "Baltic Avenue", 60, 12));
@@ -78,7 +73,7 @@ public class GameSystem {
         fields.add(new HousingField(this, "Pennsylvania Avenue", 320, 102));
         fields.add(new ChanceField(this));
         fields.add(new HousingField(this, "Park Palace", 350, 105));
-        fields.addLast(new HousingField(this, "Boardwalk", 400, 110));
+        fields.add(new HousingField(this, "Boardwalk", 400, 110));
     }
 
     /**
@@ -105,7 +100,7 @@ public class GameSystem {
      * @return generated integer value
      */
     public int roll() {
-        return (int) Math.round((Math.random() % 6) + 1);
+        return random.nextInt(6) + 1;
     }
 
     /**
@@ -117,18 +112,7 @@ public class GameSystem {
         cards.get(nextCard).onPull(players);
 
         nextCard++;
-    }
 
-    /**
-     * Waits for the enter key to be pressed
-     */
-    private void pressEnterToContinue() {
-        System.out.println("Press Enter key to continue...");
-        try {
-            var ignore = System.in.read();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -183,7 +167,6 @@ public class GameSystem {
             String arg = "";
             if (!input.equalsIgnoreCase("start"))
                 arg = scanner.next();
-
             switch (input) {
                 case "add":
                     if (arg == null)
@@ -232,14 +215,15 @@ public class GameSystem {
         Iterator<Player> it = players.iterator();
 
         System.out.println("In Game Commands: help, status, roll");
-        do {
-            TimeUnit.SECONDS.sleep(1);
 
-            System.out.println("----------");
-
+        while (players.size() > 1) {
+            TimeUnit.SECONDS.sleep(2);
             //Cycle through players using iterator
-            if (!it.hasNext())
+            if (!it.hasNext()) {
                 it = players.iterator();
+
+            }
+            printStatus();
             currentPlayer = it.next();
 
             //Check if player is in jail
@@ -249,20 +233,7 @@ public class GameSystem {
                 continue;
             }
 
-            System.out.println(currentPlayer.getName() + "'s Turn:\n");
-
-            String input;
-           do {
-                input = scanner.next();
-                switch (input) {
-                    case "help":
-                        currentPlayer.help();
-                        break;
-                    case "status":
-                        currentPlayer.status();
-                        break;
-                }
-            } while(!input.equals("roll"));
+            System.out.println(currentPlayer.getName() + "'s Turn:");
 
 
             System.out.println("Rolling...");
@@ -281,7 +252,7 @@ public class GameSystem {
                 fields.get(pos).onEnter();
             }
 
-            showPosition();
+            showFieldOnPosition();
 
             System.out.print(currentPlayer.getName() + " landed on ");
             checkLandedField(fields.get(currentPlayer.getFieldPos()));
@@ -291,42 +262,59 @@ public class GameSystem {
             //remove player and ownership of bought housing fields if their money is below or equal to 0
             players.forEach(player -> {
                 if (player.getMoney() <= 0) {
-                    players.remove(player);
                     fields.forEach(field -> {
-                        if (field instanceof HousingField &&
-                                ((HousingField) field).getOwner().equals(player))
-                            ((HousingField) field).setOwner(null);
+                        if (field instanceof HousingField) {
+                            if (player.getOwnedHousingFields().contains(field)) {
+                                ((HousingField) field).setOwner(null);
+                            }
+                        }
                     });
                 }
             });
-        } while (players.size() != 1);
 
+            players.removeIf(x -> x.getMoney() <= 0);
+        }
 
-        System.out.print("WINNER: " + players.get(0).getName());
+        System.out.println();
+        System.out.println("+=====================================+");
+        System.out.println("\tWINNER: \n" + players.get(0).getName());
+        System.out.println("+=====================================+");
+
         scanner.close();
     }
 
-    private void showPosition() {
+    private void showFieldOnPosition() {
         PrintStream stream = System.out;
-        char[] playerPos = new char[48];
+        char[] playerPos = new char[72];
+
+        stream.println();
 
         fields.forEach(field -> {
-            if(field instanceof StartField)
+            if (field instanceof StartField)
                 stream.print("|G");
-            else if(field instanceof HousingField)
+            else if (field instanceof HousingField)
                 stream.print(" ^" + ((HousingField) field).getName().charAt(0));
-            else if(field instanceof ChanceField)
+            else if (field instanceof ChanceField)
                 stream.print(" |C");
-            else if(field instanceof JailField)
+            else if (field instanceof JailField)
                 stream.print(" |J");
             else if (field instanceof TaxField)
                 stream.print(" |T");
-            else if(field instanceof PoliceField)
+            else if (field instanceof PoliceField)
                 stream.print(" |P");
         });
-        stream.print("\n");
+        stream.println();
 
         players.forEach(player -> playerPos[1 + player.getFieldPos() * 3] = player.getName().charAt(0));
         stream.println(playerPos);
+
+        stream.println();
+    }
+
+    private void printStatus() {
+        System.out.println("----------");
+        for (var player : players)
+            System.out.println("\t[" + player.getName() + "] Position : " + player.getFieldPos() + "|Balance: $" + player.getMoney());
+        System.out.println("----------");
     }
 }

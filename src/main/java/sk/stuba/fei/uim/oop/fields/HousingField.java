@@ -79,6 +79,13 @@ public class HousingField extends Field {
             var scanner = new Scanner(System.in);
 
             System.out.println("Would you like to buy " + name + " for $" + value + "?");
+            System.out.println("Current balance: $" + system.currentPlayer.getMoney());
+
+            if (system.currentPlayer.getMoney() < value) {
+                System.out.println("You don't have enough money to buy this property.");
+                return;
+            }
+
             while (true) {
                 var answer = scanner.next();
 
@@ -86,11 +93,12 @@ public class HousingField extends Field {
                     system.currentPlayer.setMoney(money - value);
                     owner = system.currentPlayer;
                     system.currentPlayer.addHousingField(this);
+                    System.out.println(system.currentPlayer.getName() + " bought " + name);
                     break;
                 } else if (Arrays.asList(NO).contains(answer.toLowerCase())) {
                     break;
                 } else {
-                    System.out.println("Invalid answer!");
+                    System.out.println("Invalid input!");
                 }
             }
         }
